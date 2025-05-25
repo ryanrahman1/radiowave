@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RadioWave</title>
+  <link href="https://unpkg.com/maplibre-gl@3.3.1/dist/maplibre-gl.css" rel="stylesheet" />
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
+  />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="map"></div>
+
+    <div id="loadingPopup" style="
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    padding: 8px 14px;
+    border-radius: 8px;
+    z-index: 9999;
+    font-size: 14px;
+    display: none;
+    pointer-events: none;
+    ">
+    Loading stations...
+    </div>
+
+    <div id="player" class="player">
+    <div class="top-row d-flex justify-content-between align-items-center">
+        <button id="toggleMode" class="btn btn-sm icon-btn" title="Toggle Mode">
+        <i class="bi bi-moon-fill"></i>
+        </button>
+        <span id="dateTime" class="text-muted small"></span>
+
+    </div>
+
+    <div class="station-info">
+        <h5 id="stationName" class="mb-0">No station</h5>
+        <small id="stationCountry" class="text-secondary">---</small>
+    </div>
+
+    <div class="controls d-flex justify-content-center align-items-center gap-3">
+        <button id="randomBtn" class="btn icon-btn" title="Random Station">
+        <i class="bi bi-shuffle"></i>
+        </button>
+        <button id="playPauseBtn" class="btn icon-btn" title="Play/Pause">
+        <i id="playPauseIcon" class="bi bi-play-fill"></i>
+        </button>
+        <button id="shareBtn" class="btn icon-btn" title="Share">
+        <i class="bi bi-share"></i>
+        </button>
+        <button id="minimizeBtn" class="btn icon-btn" title="Minimize">
+        <i class="bi bi-chevron-down"></i>
+        </button>
+    </div>
+    </div>
+
+  <script src="https://unpkg.com/maplibre-gl@3.3.1/dist/maplibre-gl.js"></script>
+  <script src="script.js"></script>
+
+  <script>
+
+    // Random station button
+    document.getElementById('randomBtn').addEventListener('click', async () => {
+    const source = map.getSource('stations');
+    const data = source._data; // contains the GeoJSON
+    const features = data.features;
+    if (!features.length) return;
+
+    const randomFeature = features[Math.floor(Math.random() * features.length)];
+    const { name, url } = randomFeature.properties;
+    const coords = randomFeature.geometry.coordinates;
+
+    audio.src = url;
+    audio.play().catch(() => {});
+    const location = await getLocationFromCoords(coords[1], coords[0]);
+
+    document.getElementById('stationName').textContent = name || 'Unknown Station';
+    document.getElementById('stationCountry').textContent = location;
+    player.classList.remove('hidden');
+    isPlaying = true;
+    playPauseIcon.classList.replace('bi-play-fill', 'bi-pause-fill');
+
+    map.flyTo({ center: coords, zoom: 6 });
+    });
+
+    // Share button
+    document.getElementById('shareBtn').addEventListener('click', () => {
+    const name = document.getElementById('stationName').textContent;
+    const shareURL = `${window.location.href.split('#')[0]}#station=${encodeURIComponent(name)}`;
+    navigator.clipboard.writeText(shareURL).then(() => {
+        alert(`Link copied to clipboard:\n${shareURL}`);
+    });
+    });
+
+    // Minimize player
+    document.getElementById('minimizeBtn').addEventListener('click', () => {
+    player.classList.toggle('minimized');
+
+    const icon = document.querySelector('#minimizeBtn i');
+    icon.classList.toggle('bi-chevron-down');
+    icon.classList.toggle('bi-chevron-up');
+    });
+
+    const toggleIcon = document.querySelector('#toggleMode i');
+
+    // Set icon based on user preferred theme
+    if (isDark) {
+    // If user prefers dark, icon should show sun (light mode toggle)
+    toggleIcon.classList.remove('bi-moon-fill');
+    toggleIcon.classList.add('bi-sun-fill');
+    } else {
+    // If user prefers light, icon should show moon (dark mode toggle)
+    toggleIcon.classList.remove('bi-sun-fill');
+    toggleIcon.classList.add('bi-moon-fill');
+    }
+
+    function updateDateTime() {
+    const now = new Date();
+    const options = {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+    };
+    document.getElementById('dateTime').textContent = now.toLocaleString('en-US', options);
+    }
+
+    updateDateTime();
+    setInterval(updateDateTime, 60 * 1000); // updates every minute
+  </script>
+</body>
+</html>
