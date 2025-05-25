@@ -1,6 +1,6 @@
-# RadioGlobe
+# RadioWave
 
-RadioGlobe is a web-based radio player that provides access to thousands of radio stations from around the world. It features an interactive map interface, allowing users to discover and listen to stations by geographic location.
+RadioWave is a web-based radio player that provides access to thousands of radio stations from around the world. It features an interactive map interface, allowing users to discover and listen to stations by geographic location.
 
 ## Features
 
