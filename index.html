@@ -14,6 +14,10 @@
 <body>
   <div id="map"></div>
 
+  <div class="custom-attribution">
+    © MapTiler · © OpenStreetMap
+  </div>
+
     <div id="loadingPopup" style="
     position: absolute;
     top: 10px;
@@ -37,8 +41,12 @@
         <i class="bi bi-moon-fill"></i>
         </button>
         <span id="dateTime" class="text-muted small"></span>
+        <button id="filterFavoritesBtn" title="Show only favorites">
+          <i class="bi bi-star"></i>
+        </button>
 
     </div>
+      
 
     <div class="station-info">
         <h5 id="stationName" class="mb-0">No station</h5>
@@ -49,8 +57,17 @@
         <button id="randomBtn" class="btn icon-btn" title="Random Station">
         <i class="bi bi-shuffle"></i>
         </button>
+        <button id="zoomOutBtn" class="btn icon-btn" title="Zoom Out to World">
+          <i class="bi bi-globe"></i>
+        </button>
+        <button id="zoomBtn" class="btn icon-btn" title="Zoom to Station">
+          <i class="bi bi-geo-alt-fill"></i>
+        </button>
         <button id="playPauseBtn" class="btn icon-btn" title="Play/Pause">
         <i id="playPauseIcon" class="bi bi-play-fill"></i>
+        </button>
+        <button id="favoriteBtn" class="btn icon-btn" title="Favorite">
+          <i id="favoriteIcon" class="bi bi-heart"></i>
         </button>
         <button id="shareBtn" class="btn icon-btn" title="Share">
         <i class="bi bi-share"></i>
@@ -68,26 +85,41 @@
 
     // Random station button
     document.getElementById('randomBtn').addEventListener('click', async () => {
-    const source = map.getSource('stations');
-    const data = source._data; // contains the GeoJSON
-    const features = data.features;
-    if (!features.length) return;
+      const source = map.getSource('stations');
+      const data = source._data;
+      const features = data.features;
+      if (!features.length) return;
 
-    const randomFeature = features[Math.floor(Math.random() * features.length)];
-    const { name, url } = randomFeature.properties;
-    const coords = randomFeature.geometry.coordinates;
+      const randomFeature = features[Math.floor(Math.random() * features.length)];
+      const { name, url } = randomFeature.properties;
+      const coords = randomFeature.geometry.coordinates;
+      currentStationCoords = coords;
 
-    audio.src = url;
-    audio.play().catch(() => {});
-    const location = await getLocationFromCoords(coords[1], coords[0]);
+      audio.src = url;
+      audio.play().catch(() => {});
+      const location = await getLocationFromCoords(coords[1], coords[0]);
 
-    document.getElementById('stationName').textContent = name || 'Unknown Station';
-    document.getElementById('stationCountry').textContent = location;
-    player.classList.remove('hidden');
-    isPlaying = true;
-    playPauseIcon.classList.replace('bi-play-fill', 'bi-pause-fill');
+      document.getElementById('stationName').textContent = name || 'Unknown Station';
+      document.getElementById('stationCountry').textContent = location;
+      player.classList.remove('hidden');
+      isPlaying = true;
+      playPauseIcon.classList.replace('bi-play-fill', 'bi-pause-fill');
 
-    map.flyTo({ center: coords, zoom: 6 });
+      map.flyTo({ center: coords, zoom: 10, speed: 1.2 });
+
+      const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+
+      // Always reset to outline first
+      favoriteIcon.classList.remove('bi-heart-fill');
+      favoriteIcon.classList.add('bi-heart');
+      favoriteIcon.classList.remove('favorited');
+
+      // If it's a fav, fill and color red
+      if (favorites.includes(name)) {
+        favoriteIcon.classList.remove('bi-heart');
+        favoriteIcon.classList.add('bi-heart-fill');
+        favoriteIcon.classList.add('favorited');
+      }
     });
 
     // Share button
@@ -121,18 +153,21 @@
     toggleIcon.classList.add('bi-moon-fill');
     }
 
-    function updateDateTime() {
-    const now = new Date();
-    const options = {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true
-    };
-    document.getElementById('dateTime').textContent = now.toLocaleString('en-US', options);
+    function updateTime() {
+      const now = new Date();
+      document.getElementById('dateTime').textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      
+      // Update every minute at the start of the next minute
+      const delay = (60 - now.getSeconds()) * 1000 - now.getMilliseconds();
+      setTimeout(updateTime, delay);
     }
 
-    updateDateTime();
-    setInterval(updateDateTime, 60 * 1000); // updates every minute
+
+    updateTime();
+    document.getElementById('zoomOutBtn').addEventListener('click', () => {
+      map.flyTo({ center: [0, 20], zoom: 1.5, speed: 1.2 }); // world view
+    });
+
   </script>
 </body>
 </html>

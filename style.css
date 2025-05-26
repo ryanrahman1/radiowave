@@ -29,18 +29,6 @@ body, html {
   transition: all 0.3s ease;
 }
 
-.player.minimized {
-  padding: 0.75rem 1rem;
-  width: auto;
-}
-
-.player.minimized .top-row,
-.player.minimized .station-info small,
-.player.minimized #randomBtn,
-.player.minimized #shareBtn {
-  display: none;
-}
-
 .top-row {
   margin-bottom: 0.5rem;
 }
@@ -63,19 +51,54 @@ body, html {
   font-size: 1.25rem;
   padding: 0.5rem;
   transition: color 0.2s ease;
+  cursor: pointer;
 }
 
 .icon-btn:hover {
   color: #00d0ff;
 }
 
-.icon-btn {
-  cursor: pointer;
-}
-
 .controls {
   gap: 0.75rem;
   flex-wrap: wrap;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* === Minimized Player Styles === */
+
+.player.minimized {
+  padding: 0.5rem 1rem;
+  background: rgba(0, 0, 0, 0.75);
+  border-radius: 12px;
+  width: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.player.minimized .top-row,
+.player.minimized .station-info small,
+.player.minimized .controls button {
+  display: none;
+}
+
+.player.minimized .station-info {
+  display: block;
+  margin: 0;
+}
+
+.player.minimized .station-info h5 {
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* Show only play/pause and minimize buttons */
+.player.minimized #playPauseBtn,
+.player.minimized #minimizeBtn {
+  display: inline-flex;
 }
 
 @media (max-width: 480px) {
@@ -94,14 +117,61 @@ body, html {
   }
 }
 
-.player.minimized .top-row,
-.player.minimized .station-info,
-.player.minimized .controls button:not(#playPauseBtn):not(#minimizeBtn) {
-  display: none;
+#favoriteBtn i {
+  transition: color 0.2s ease, transform 0.2s ease;
 }
 
-.player.minimized {
-  padding: 0.5rem 1rem;
-  background: rgba(0, 0, 0, 0.75);
-  border-radius: 12px;
+#favoriteBtn.active i {
+  transform: scale(1.1);
 }
+
+#favoriteIcon {
+  color: white !important;
+}
+
+#favoriteIcon.favorited {
+  color: red !important;
+}
+
+.top-row {
+  display: flex;
+  align-items: center;
+}
+
+#dateTime {
+  flex-grow: 1;
+  text-align: center;
+}
+
+#filterFavoritesBtn {
+  margin-left: 0; /* remove margin-left:auto */
+}
+
+#filterFavoritesBtn {
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: white;
+  transition: transform 0.2s ease;
+  margin-left: auto;
+}
+
+#filterFavoritesBtn.active {
+  transform: scale(1.2);
+  color: white;
+}
+
+.maplibregl-ctrl-attrib {
+  display: none !important;
+}
+
+.custom-attribution {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  font-size: 0.75rem;
+  color: #aaa;
+  z-index: 999;
+}
+
