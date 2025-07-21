@@ -223,6 +223,38 @@ map.on('load', async () => {
     loadLastPlayedStation(geojsonData.features);
   });
 
+  const hash = new URLSearchParams(window.location.hash.replace('#', ''));
+  const stationToLoad = hash.get('station');
+
+  if (stationToLoad) {
+    const match = geojsonData.features.find(f => f.properties.name === stationToLoad);
+    if (match) {
+      currentStation = match.properties;
+      currentStationCoords = match.geometry.coordinates;
+
+      stationNameEl.textContent = match.properties.name;
+      getLocationFromCoords(currentStationCoords[1], currentStationCoords[0])
+        .then(location => {
+          stationCountryEl.textContent = location;
+        });
+
+      player.classList.remove('hidden');
+      audio.src = currentStation.url;
+      audio.play().catch(() => {});
+      isPlaying = true;
+      playPauseIcon.classList.replace('bi-play-fill', 'bi-pause-fill');
+
+      updateFavoriteBtn(currentStation.name);
+      localStorage.setItem('lastStation', JSON.stringify({
+        name: currentStation.name,
+        url: currentStation.url,
+        coords: currentStationCoords,
+      }));
+
+      map.flyTo({ center: currentStationCoords, zoom: 10 });
+    }
+  }
+
   map.on('click', 'clusters', (e) => {
     const features = map.queryRenderedFeatures(e.point, { layers: ['clusters'] });
     if (!features.length) return;

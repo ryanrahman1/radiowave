@@ -9,6 +9,7 @@
     rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
   />
+  <link rel="shortcut icon" href="assets/favicon.ico" type="image/x-icon">
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -124,11 +125,15 @@
 
     // Share button
     document.getElementById('shareBtn').addEventListener('click', () => {
-    const name = document.getElementById('stationName').textContent;
-    const shareURL = `${window.location.href.split('#')[0]}#station=${encodeURIComponent(name)}`;
-    navigator.clipboard.writeText(shareURL).then(() => {
+      if (!currentStation?.name) return;
+
+      const name = currentStation.name;
+      const shareURL = `${window.location.origin}${window.location.pathname}#station=${encodeURIComponent(name)}`;
+      navigator.clipboard.writeText(shareURL).then(() => {
         alert(`Link copied to clipboard:\n${shareURL}`);
-    });
+      }).catch(err => {
+        console.error('Clipboard copy failed:', err);
+      });
     });
 
     // Minimize player
